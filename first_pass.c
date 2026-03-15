@@ -132,6 +132,7 @@ int insert_data(data_mgr *data_head, const char *ptr, int dc) {
         num = (int)strtol(ptr,&rest,10);
         /*check if we do not find any number*/
         if (ptr == rest) {
+            printf("Error - invalid characters inside data (\"%s\") | ",ptr);
             return ERROR;
         }
         /*allocate memory*/
@@ -252,7 +253,7 @@ int address_mode(const char* operand) {
  * @return ERROR if the command doesn't define properly and OK if it is
  */
 int translate_code(char const * cmd,int *ic,code_image * code) {
-    char *cmd_wrd, *dst_wrd, *src_wrd, cmd_cpy[MAX_LINE_LEN];
+    char *cmd_wrd, *dst_wrd, *src_wrd,*args, cmd_cpy[MAX_LINE_LEN];
     int i,l,src_mode,dst_mode;
     static command commands[]={/*define the commands*/
         {"mov",0,0},
@@ -281,6 +282,15 @@ int translate_code(char const * cmd,int *ic,code_image * code) {
     /*cut the command*/
     strcpy(cmd_cpy,cmd);
     cmd_wrd = strtok(cmd_cpy," \t\n,");
+    if (cmd_wrd == NULL) {
+        printf("Error - missing command | ");
+        return ERROR;
+    }
+    args = strtok(NULL,"\r\n");
+    /*check arg commas*/
+    if (comma_check(args)==ERROR) {
+        return ERROR;
+    }
     src_wrd = strtok(NULL," \t\n,");
     dst_wrd = strtok(NULL," \t\n,");
 
@@ -291,7 +301,7 @@ int translate_code(char const * cmd,int *ic,code_image * code) {
         }
     }
     if (commands[i].opcode == ERROR ) {
-        printf("Error -  invalid command name | ");
+        printf("Error -  \"%s\" is invalid command name | ",cmd_wrd);
         return ERROR;
     }
     insert_opcode(&code[(*ic)],commands[i].opcode);
@@ -309,10 +319,10 @@ int translate_code(char const * cmd,int *ic,code_image * code) {
         /*translate the source operand*/
         switch (src_mode) {
             case IMMEDIATE_ADDRESSING:
-                code[(*ic)+l].code = (atoi(src_wrd+1) | A);
+                code[(*ic)+l].code = ((atoi(src_wrd+1)&CODE_MASK) | A);
                 break;
             case REGISTER_ADDRESSING:
-                code[(*ic)+l].code = ((1 << atoi(src_wrd+1)) | A);
+                code[(*ic)+l].code = ((1 << (atoi(src_wrd+1)&CODE_MASK)) | A);
                 break;
             default:
                 break;
@@ -327,10 +337,10 @@ int translate_code(char const * cmd,int *ic,code_image * code) {
         /*translate the destination operand*/
         switch (dst_mode) {
             case IMMEDIATE_ADDRESSING:
-                code[(*ic)+l].code = (atoi(dst_wrd+1) | A);
+                code[(*ic)+l].code = ((atoi(dst_wrd+1)&CODE_MASK) | A);
                 break;
             case REGISTER_ADDRESSING:
-                code[(*ic)+l].code = ((1 << atoi(dst_wrd+1)) | A);
+                code[(*ic)+l].code = ((1 << (atoi(dst_wrd+1)&CODE_MASK)) | A);
                 break;
             default:
                 break;
@@ -347,7 +357,7 @@ int translate_code(char const * cmd,int *ic,code_image * code) {
  * @param symbol_head a pointer to the symbol table linked list
  * @param ic the final ic counter after the first pass
  */
-void update_data_symbol(symbol_table_mgr symbol_head, int ic) {
+void update_data_symbol(const symbol_table_mgr symbol_head, int ic) {
     symbol_table *curr;
     curr = symbol_head.head;
     while (curr != NULL) {
@@ -369,7 +379,7 @@ void update_data_symbol(symbol_table_mgr symbol_head, int ic) {
  *
  * @return OK if the first passage was successful and ERROR if not
  */
-int run_first_pass(char *file_name, const macro_mgr *macro_head,symbol_table_mgr *symbol_head,data_mgr *data_head,code_image *code) {
+int run_first_pass(const char *file_name, const macro_mgr *macro_head,symbol_table_mgr *symbol_head,data_mgr *data_head,code_image *code) {
     char *file_am,cpy_line[MAX_LINE_LEN], line[MAX_LINE_LEN],*label, *cmd;
     FILE *fp_am;
     int ic,dc,line_count,error_count,total_error;
@@ -420,7 +430,9 @@ int run_first_pass(char *file_name, const macro_mgr *macro_head,symbol_table_mgr
             if (cmd_data(data_head,cmd,dc) == ERROR) {/*the data is written wrong*/
                 error_count++;
             }
-            dc = data_head->head->dc;
+            else {/*enter the data only  if the dat is written properly*/
+                dc = data_head->head->dc;
+            }
         }
         /*check if is entry directive*/
         else if (is_entry(cpy_line)){
@@ -456,17 +468,16 @@ int run_first_pass(char *file_name, const macro_mgr *macro_head,symbol_table_mgr
             else {
                 cmd = cpy_line;
             }
-            if (translate_code(cmd,&ic,code) == ERROR) {
-                error_count++;
+            if (cmd != NULL) {/*check if we have command in the line*/
+                if (translate_code(cmd,&ic,code) == ERROR) {
+                    error_count++;
+                }
             }
-
         }
         if (total_error < error_count) {
             printf("[line %d]\n",line_count);
             total_error = error_count;
         }
-
-
     }
     update_data_symbol(*symbol_head,ic);
     end_use("pf",file_am,fp_am);

@@ -125,6 +125,19 @@ void free_symbol(symbol_table * head) {
         free(temp);
     }
 }
+/**
+ * @brief the function release all the data image linked list
+ * @param head  is the head of the linked list
+ */
+void free_data(data_image *head) {
+    data_image *curr,*temp;
+    curr = head;
+    while (curr != NULL) {
+        temp = curr;
+        curr = curr->next;
+        free(temp);
+    }
+}
 
 
 /**

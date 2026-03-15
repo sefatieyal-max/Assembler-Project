@@ -43,7 +43,7 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
                 }
                 else {
-                    code[(*ic)].code = (curr->value | R);
+                code[(*ic)].code = ((curr->value&CODE_MASK) | R);
                 }
                 break;
             case RELATIVE_ADDRESSING:
@@ -57,7 +57,7 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
                 }
                 else {
-                    code[(*ic)].code = ((curr->value -(*ic)) | R);
+                code[(*ic)].code = (((curr->value -(*ic))&CODE_MASK) | R);
                 }
                 break;
             default:;
@@ -77,7 +77,7 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
                 }
                 else {
-                    code[(*ic)].code = (curr->value | R);
+                    code[(*ic)].code = ((curr->value&CODE_MASK) | R);
                 }
                 break;
             case RELATIVE_ADDRESSING:
@@ -91,7 +91,7 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
                 }
                 else {
-                    code[(*ic)].code = ((curr->value -(*ic)) | R);
+                    code[(*ic)].code = (((curr->value -(*ic))&CODE_MASK) | R);
                 }
                 break;
             default:;
@@ -109,7 +109,7 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
                 }
                 else {
-                    code[(*ic)].code = (curr->value | R);
+                code[(*ic)].code = ((curr->value&CODE_MASK) | R);
                 }
                 break;
             case RELATIVE_ADDRESSING:
@@ -123,7 +123,7 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
                 }
                 else {
-                    code[(*ic)].code = ((curr->value -(*ic)) | R);
+                    code[(*ic)].code = (((curr->value -(*ic))&CODE_MASK) | R);
                 }
                 break;
             default:;
@@ -145,7 +145,7 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
 int run_second_pass(char * file_name, symbol_table_mgr * symbol_head, const data_mgr * data_head, code_image * code) {
     char *file_am,cpy_line[MAX_LINE_LEN], line[MAX_LINE_LEN],*cmd;
     FILE *fp_am;
-    int line_count,error_count,total_error,ic;
+    int line_count,error_count,total_error,ic,fdc;
     symbol_table *curr;
 
     /*initialize variables*/
@@ -212,7 +212,8 @@ int run_second_pass(char * file_name, symbol_table_mgr * symbol_head, const data
         return ERROR;
     }
     /*make the output files*/
-    if (make_output_files(file_name,symbol_head,data_head,code,ic,data_head->head->dc) == ERROR) {
+    fdc = (data_head->head == NULL) ? 0 : data_head->head->dc;/*check if we have data*/
+    if (make_output_files(file_name,symbol_head,data_head,code,ic,fdc) == ERROR) {
         return ERROR;
     }
     return OK;

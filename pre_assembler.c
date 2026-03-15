@@ -58,7 +58,14 @@ int add_macro(macro_mgr *mgr, FILE * fp, char * line) {
     int content_len,line_len;
     char *temp;
     macro *curr;
-    create_macro(mgr,line);
+    if (create_macro(mgr,line) == ERROR) {/*if the macro crate is error clean th macro*/
+        while (fgets(line,MAX_LINE_LEN,fp)) {
+            if (macro_end(line) && macro_end_check(line)) {
+                break;
+            }
+        }
+        return ERROR;
+    }
 
     /*open the macro head*/
     curr = mgr->head;

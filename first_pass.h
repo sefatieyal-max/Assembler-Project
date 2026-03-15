@@ -96,5 +96,5 @@ void update_data_symbol(symbol_table_mgr symbol_head, int ic);
  *
  * @return OK if the first passage was successful and ERROR if not
  */
-int run_first_pass(char *file_name, const macro_mgr *macro_head,symbol_table_mgr *symbol_head,data_mgr *data_head,code_image *code);
+int run_first_pass(const char *file_name, const macro_mgr *macro_head,symbol_table_mgr *symbol_head,data_mgr *data_head,code_image *code);
 #endif //ASSEMBLER_FIRST_PASS_H

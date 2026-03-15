@@ -79,9 +79,11 @@ typedef struct {
     data_image *head;
 }data_mgr;
 
-
-data_mgr * data_img_search(int dc, data_image * curr);
-void free_data(data_image *data_head);
+/**
+ * @brief the function release all the data image linked list
+ * @param head  is the head of the linked list
+ */
+void free_data(data_image *head);
 
 
 /*a struct for the command*/

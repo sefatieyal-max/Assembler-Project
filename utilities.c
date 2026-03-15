@@ -165,7 +165,7 @@ boolean is_command(const char *word) {
     int i,len;
     /*array of commands*/
     char *cmd[] = {"mov","cmp","add","sub","lea","clr","not","inc","dec","jmp","bne","jsr","red","prn","rts","stop"};
-    len = sizeof(cmd)/sizeof(char*)-1;
+    len = sizeof(cmd)/sizeof(char*);
     /*check if the word is a command*/
     for (i = 0; i < len; i++) {
         if (strcmp(cmd[i], word) == 0) {
@@ -184,7 +184,7 @@ boolean is_directive(const char *word) {
     int i,len;
     /*array of directives*/
     char *dirs[] = {".data",".string",".entry",".extern"};
-    len = sizeof(dirs)/sizeof(char*)-1;
+    len = sizeof(dirs)/sizeof(char*);
     /*check if the word is a directives*/
     for (i = 0; i < len; i++) {
         if (strcmp(dirs[i], word) == 0) {
@@ -203,7 +203,7 @@ boolean is_register(const char *word) {
     int i,len;
     /*array of registers*/
     char *regs[] = {"r0","r1","r2","r3","r4","r5","r6","r7"};
-    len = sizeof(regs)/sizeof(char*)-1;
+    len = sizeof(regs)/sizeof(char*);
     /*check if the word is a registers*/
     for (i = 0; i < len; i++) {
         if (strcmp(regs[i], word) == 0) {

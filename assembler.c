@@ -14,24 +14,25 @@ int main(int argc, char *argv[]) {
     macro_mgr macro_head;
     symbol_table_mgr symbol_head;
     data_mgr data_head;
-    static code_image code[MEMORY_SIZE];
+    code_image code[MEMORY_SIZE];
     while (--argc > 0) {
         /*reset the structs*/
         macro_head.head = NULL;
         symbol_head.head = NULL;
         data_head.head = NULL;
+        memset(code,0,sizeof(code));
         /*run and check if the macro processor seceded*/
-        if (run_pre_assembler(argv[argc],&macro_head) == ERROR) {
-            continue;
+        if (run_pre_assembler(argv[argc],&macro_head) == OK) {
+            /*run and check the first pass on the file*/
+            if (run_first_pass(argv[argc],&macro_head,&symbol_head,&data_head,code) == OK) {
+                /*run the second pass on the file*/
+                run_second_pass(argv[argc],&symbol_head,&data_head,code);
+            }
         }
-        /*run and check the first pass on the file*/
-        if (run_first_pass(argv[argc],&macro_head,&symbol_head,&data_head,code) == ERROR) {
-            return ERROR;
-        }
-        /*run and check the second pass on the file*/
-        if (run_second_pass(argv[argc],&symbol_head,&data_head,code) == ERROR) {
-            return ERROR;
-        }
+        /*release memory*/
+        free_data(data_head.head);
+        free_macro(macro_head.head);
+        free_symbol(symbol_head.head);
     }
     return OK;
 }
