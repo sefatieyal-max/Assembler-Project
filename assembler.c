@@ -8,7 +8,7 @@
  *
  *@param argc the number of command line arguments
  *@param argv array of string containing the command line arguments
- *@return 0 if the program run successfully
+ *@return 0 if the program run successfull
  */
 int main(int argc, char *argv[]) {
     macro_mgr macro_head;
