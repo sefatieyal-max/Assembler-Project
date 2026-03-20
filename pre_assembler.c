@@ -8,7 +8,7 @@
  *@return true if there "mcro" and FALSE if it doesn't
  */
 boolean macro_start(const char *line) {
-    return (strstr(line, "mcro") != NULL);
+    return (strstr(line, "mcro ") != NULL);
 }
 /**
  *@brief return if we have "mcro" in the given line
@@ -26,7 +26,22 @@ boolean macro_end(const char *line) {
  *@return TRUE if the line written properly and FALSE if its doesn't
  */
 boolean macro_end_check(const char * line) {
-    return (strcmp(line, "mcroend") == TRUE);
+    boolean flag;
+
+    /*check if the line start with mcroend*/
+    if(strncmp(line, "mcroend",strlen("mcroend"))== 0) {
+        line = line + strlen("mcroend");
+        /*check for extra characters*/
+        while (*line != '\0') {
+            if (!isspace(*line)) {
+                return FALSE;
+            }
+            line++;
+        }
+        return TRUE;
+    }
+
+    return FALSE;
 }
 /**
  *@brief this function check if the macro name is legal
@@ -37,9 +52,11 @@ boolean macro_end_check(const char * line) {
 boolean macro_name_check(char * macro_name) {
     macro_name = strtok(macro_name," \n\t\r");
     if (is_reserved_word(macro_name)) {
+        printf("Error - macro doesn't declared properly (reserved word)\n");
         return FALSE;
     }
     if (strtok(NULL,"\n") != NULL) {
+        printf("Error - macro doesn't declared properly (extra text)\n");
         return FALSE;
     }
     return TRUE;
@@ -52,7 +69,7 @@ boolean macro_name_check(char * macro_name) {
  *@param mgr is the pointer to the last macro we have (head)
  *@param fp is the pointer to the lines we read from the file
  *@param line is the first line of the macro
- *@return pointer to the head in the macro linked list
+ *@return OK if the nacro dding was seccsecfull and ERROR if not
  */
 int add_macro(macro_mgr *mgr, FILE * fp, char * line) {
     int content_len,line_len;
@@ -96,7 +113,6 @@ int create_macro(macro_mgr * mgr, char * line) {
     macro *curr;
     line = line + strlen("mcro"); /*removing "mcro" from the line*/
     if(!macro_name_check(line)){
-        printf("Error - macro doesnt declared properly\n");
         return ERROR;
     }
     macro_name = strtok(line," \n\t\r");
@@ -122,9 +138,14 @@ int run_pre_assembler(char *file_name,macro_mgr *mgr) {
     char line[MAX_LINE_LEN];
     char *file_as, *file_tmp,*file_am;
     FILE *fp,*fp_am;
+    int error_count;
+
+    error_count = 0;
     /*create and open .as files and work on file.tmp after clean extra spaces*/
     file_as = make_file_name(file_name, ".as");
-    file_tmp = clean_file_spaces(file_as);
+    if ((file_tmp = clean_file_spaces(file_as)) == NULL) {
+        return ERROR;
+    }
     if ((fp = fopen(file_tmp, "r") ) == NULL) {/*check if we succeed to open the file*/
         printf("Error opening file - %s\n", file_tmp);
         /*release and close file if we don't succeed to open*/
@@ -140,9 +161,15 @@ int run_pre_assembler(char *file_name,macro_mgr *mgr) {
         return ERROR;
     }
     while (fgets(line,MAX_LINE_LEN,fp)){
+        /*skip comment line*/
+        if (is_comment(line)) {
+            continue;
+        }
         /*we need to add macro*/
         if (macro_start(line)) {
-            add_macro(mgr,fp,line);
+            if (add_macro(mgr,fp,line) == ERROR) {
+                error_count++;
+            }
         }
         /*we need to replace a macro*/
         else if ((curr = macro_search(line,mgr->head))!=NULL) {
@@ -154,5 +181,8 @@ int run_pre_assembler(char *file_name,macro_mgr *mgr) {
         }
     }
     end_use("pppff",file_am,file_tmp,file_as,fp,fp_am);
+    if (error_count>0) {
+        return ERROR;
+    }
     return OK;
 }

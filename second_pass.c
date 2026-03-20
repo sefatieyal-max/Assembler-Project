@@ -13,10 +13,10 @@
  */
 int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic, const char * cmd) {
     char *dst_wrd, *src_wrd, cmd_cpy[MAX_LINE_LEN];
-    int src_mode,dst_mode,opcode;
+    int src_mode,dst_mode,opcode,status;
     symbol_table *curr;
 
-
+    status = OK;
     /*cut the command*/
     strcpy(cmd_cpy,cmd);
     strtok(cmd_cpy," \t\n,");
@@ -30,14 +30,17 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
     /*search and replace labels*/
     opcode = extract_opcode(&code[*ic]);
     (*ic)++;
-    if (SINGLE_OPERAND(opcode)) {
+    if (ZERO_OPERAND(opcode)) {
+        status = OK;
+    }
+    else if (SINGLE_OPERAND(opcode)) {
         switch (dst_mode) {
             case DIRECT_ADDRESSING:
                 if ((curr = symbol_table_search(src_wrd,symbol_head->head)) == NULL) {
                     printf("Error - label \"%s\" is not defined | ",src_wrd);
-                    return ERROR;
+                    status = ERROR;
                 }
-                if (curr->external) {
+                else if (curr->external) {
                     code[(*ic)].code = E;
                     /*add the to the symbol table with the current ic for print ext*/
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
@@ -49,15 +52,15 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
             case RELATIVE_ADDRESSING:
                 if ((curr = symbol_table_search(src_wrd+1,symbol_head->head)) == NULL) {
                     printf("Error - label \"%s\" is not defined | ",src_wrd+1);
-                    return ERROR;
+                    status = ERROR;
                 }
-                if (curr->external) {
+                else if (curr->external) {
                     code[(*ic)].code = E;
                     /*add the to the symbol table with the current ic for print ext*/
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
                 }
                 else {
-                code[(*ic)].code = (((curr->value -(*ic))&CODE_MASK) | R);
+                code[(*ic)].code = (((curr->value -(*ic))&CODE_MASK) | A);
                 }
                 break;
             default:;
@@ -69,9 +72,9 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
             case DIRECT_ADDRESSING:
                 if ((curr = symbol_table_search(src_wrd,symbol_head->head)) == NULL) {
                     printf("Error - label \"%s\" is not defined | ",src_wrd);
-                    return ERROR;
+                    status = ERROR;
                 }
-                if (curr->external) {
+                else if (curr->external) {
                     code[(*ic)].code = E;
                     /*add the to the symbol table with the current ic for print ext*/
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
@@ -83,15 +86,14 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
             case RELATIVE_ADDRESSING:
                 if ((curr = symbol_table_search(src_wrd+1,symbol_head->head)) == NULL) {
                     printf("Error - label \"%s\" is not defined | ",src_wrd+1);
-                    return ERROR;
-                }
-                if (curr->external) {
+                    status = ERROR;                }
+                else if (curr->external) {
                     code[(*ic)].code = E;
                     /*add the to the symbol table with the current ic for print ext*/
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
                 }
                 else {
-                    code[(*ic)].code = (((curr->value -(*ic))&CODE_MASK) | R);
+                    code[(*ic)].code = (((curr->value -(*ic))&CODE_MASK) | A);
                 }
                 break;
             default:;
@@ -101,9 +103,9 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
             case DIRECT_ADDRESSING:
                 if ((curr = symbol_table_search(dst_wrd,symbol_head->head)) == NULL) {
                     printf("Error - label \"%s\" is not defined | ",dst_wrd);
-                    return ERROR;
+                    status = ERROR;
                 }
-                if (curr->external) {
+                else if (curr->external) {
                     code[(*ic)].code = E;
                     /*add the to the symbol table with the current ic for print ext*/
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
@@ -115,22 +117,22 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
             case RELATIVE_ADDRESSING:
                 if ((curr = symbol_table_search(dst_wrd+1,symbol_head->head)) == NULL) {
                     printf("Error - label \"%s\" is not defined | ",dst_wrd+1);
-                    return ERROR;
+                    status = ERROR;
                 }
-                if (curr->external) {
+                else if (curr->external) {
                     code[(*ic)].code = E;
                     /*add the to the symbol table with the current ic for print ext*/
                     insert_symbol(symbol_head,curr->name,(*ic),"external");
                 }
                 else {
-                    code[(*ic)].code = (((curr->value -(*ic))&CODE_MASK) | R);
+                    code[(*ic)].code = (((curr->value -(*ic))&CODE_MASK) | A);
                 }
                 break;
             default:;
         }
         (*ic)++;
     }
-    return OK;
+    return status;
 }
 /**
  * @brief execute the second pass of the assembler it the pass was successful we star make the output file

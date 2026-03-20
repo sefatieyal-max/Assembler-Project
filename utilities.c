@@ -67,17 +67,20 @@ void clean_line_spaces(char* dst, const char* src) {
     dst[j] = '\0';
 }
 /**
- *@brief the clean al the extra spaces from the file
+ * @brief the clean al the extra spaces from the files
  *
- *@param filename is the name of the file we are cleaning
-    *
- *@return a pointer to the clean file
+ * @param filename is the name of the file we are cleaning
+ *
+ * @return a pointer to the clean file if a line is longer then 80 characters return NULL
  */
 char *clean_file_spaces(char filename[]) {
     FILE *fp_src, *fp_dst;
     char *tmp_file;
     char line[MAX_LINE_LEN];
     char clean_line[MAX_LINE_LEN];
+    int line_count;
+
+    line_count = 0;
 
     /*create temp file*/
     tmp_file = make_file_name(filename, ".tmp");
@@ -98,6 +101,12 @@ char *clean_file_spaces(char filename[]) {
     }
     /*clean the file*/
     while (fgets(line, MAX_LINE_LEN, fp_src)) {
+        line_count++;
+        /*check if the line is too long*/
+        if (strchr(line, '\n') == NULL) {
+            printf("Error - [line %d]  is longer than 80 characters",line_count);
+            return NULL;
+        }
         clean_line_spaces(clean_line, line);
         if (strlen(clean_line) > 0) {
             fprintf(fp_dst, "%s\n", clean_line);

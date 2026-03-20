@@ -69,15 +69,16 @@ boolean label_check(symbol_table * label_head, char * label, macro * macro) {
 int insert_string(data_mgr *data_head, const char *ptr, int dc) {
     data_image *curr;
     int i;
-    char line[MAX_LINE_LEN], *str;
+    char line[MAX_LINE_LEN], *str,*tmp;
     strcpy(line,ptr);
     strtok(line,"\"");
-    str = strtok(NULL,"\"");
-    if (str == NULL) {
+    tmp = strtok(NULL,"\n\r");
+    /*check if we have " in the start and in the end*/
+    if ((tmp == NULL) || strrchr(tmp,'\"') == NULL) {
         printf("Error - missing \" | ");
         return ERROR;
     }
-
+    str = strtok(tmp,"\"");
      for(i = 0 ; str[i] != '\0';i++) {
          /*check if the character are in the limits*/
          if (str[i] < 32) {
@@ -123,8 +124,16 @@ int insert_data(data_mgr *data_head, const char *ptr, int dc) {
     data_image *curr;
     int num;
     char *rest;
-    ptr = ptr + strlen(".data ");
+    ptr = ptr + strlen(".data");
+    /*skip spaces*/
+    while (isspace(*ptr)) {
+        ptr++;
+    }
     if (comma_check(ptr) == ERROR) {
+        return ERROR;
+    }
+    if (*ptr == '\0') {
+        printf("Error - missing data | ");
         return ERROR;
     }
     while (*ptr != '\0'){
@@ -133,6 +142,11 @@ int insert_data(data_mgr *data_head, const char *ptr, int dc) {
         /*check if we do not find any number*/
         if (ptr == rest) {
             printf("Error - invalid characters inside data (\"%s\") | ",ptr);
+            return ERROR;
+        }
+        /*check if the number is causing an overflow*/
+        if (num < MINNUM || num >  MAXNUM) {
+            printf("Error - the number %d is not between (-2047)-(2048) | ",num);
             return ERROR;
         }
         /*allocate memory*/
@@ -172,7 +186,7 @@ int cmd_data(data_mgr *data_head,const char * cmd, int dc) {
         }
         return OK;
     }
-    else if ((ptr = strstr(line,".data "))) {
+    else if ((ptr = strstr(line,".data"))) {
         if (insert_data(data_head,ptr,dc) == ERROR) {
             return ERROR;
         }
@@ -243,6 +257,24 @@ int address_mode(const char* operand) {
     return ERROR;
 }
 /**
+ * @check if the addressing mode allowed for the given command
+ *
+ * @param mode is the addressing mode we are checking
+ * @param allowed is the allowed addressing modes
+ * @return OK - if it allowed | ERROR - if not allowed
+ */
+int address_mode_check(const int mode, const int allowed) {
+    int check;
+    check = 1<<mode; /*translate the mode into a mask*/
+    if ((check&allowed) == 0) {
+        printf("Error - address mode (%d) does not allowed | ",mode);
+        return ERROR;
+    }
+    else {
+    return OK;
+    }
+}
+/**
  * @brief the function receive a command line, translate it into binary and store in the code image (command and operands)
  * she calculates the command length and update the ic counter
  *
@@ -256,22 +288,22 @@ int translate_code(char const * cmd,int *ic,code_image * code) {
     char *cmd_wrd, *dst_wrd, *src_wrd,*args, cmd_cpy[MAX_LINE_LEN];
     int i,l,src_mode,dst_mode;
     static command commands[]={/*define the commands*/
-        {"mov",0,0},
-        {"cmp",1,0},
-        {"add",2,10},
-        {"sub",2,11},
-        {"lea",4,0},
-        {"clr",5,10},
-        {"not",5,11},
-        {"inc",5,12},
-        {"dec",5,13},
-        {"jmp",9,10},
-        {"bne",9,11},
-        {"jsr",9,12},
-        {"red",12,0},
-        {"prn",13,0},
-        {"rts",14,0},
-        {"stop",15,0},
+        {"mov",0,0,IMMEDIATE_MASK|DIRECT_MASK|REGISTER_MASK,DIRECT_MASK|REGISTER_MASK},
+        {"cmp",1,0,IMMEDIATE_MASK|DIRECT_MASK|REGISTER_MASK,IMMEDIATE_MASK|DIRECT_MASK|REGISTER_MASK},
+        {"add",2,10,IMMEDIATE_MASK|DIRECT_MASK|REGISTER_MASK,DIRECT_MASK|REGISTER_MASK},
+        {"sub",2,11,IMMEDIATE_MASK|DIRECT_MASK|REGISTER_MASK,DIRECT_MASK|REGISTER_MASK},
+        {"lea",4,0,DIRECT_MASK,DIRECT_MASK|REGISTER_MASK},
+        {"clr",5,10,NONE,DIRECT_MASK|REGISTER_MASK},
+        {"not",5,11,NONE,DIRECT_MASK|REGISTER_MASK},
+        {"inc",5,12,NONE,DIRECT_MASK|REGISTER_MASK},
+        {"dec",5,13,NONE,DIRECT_MASK|REGISTER_MASK},
+        {"jmp",9,10,NONE,DIRECT_MASK|RELATIVE_MASK},
+        {"bne",9,11,NONE,DIRECT_MASK|RELATIVE_MASK},
+        {"jsr",9,12,NONE,DIRECT_MASK|RELATIVE_MASK},
+        {"red",12,0,NONE,DIRECT_MASK|REGISTER_MASK},
+        {"prn",13,0,NONE,IMMEDIATE_MASK|DIRECT_MASK|REGISTER_MASK},
+        {"rts",14,0,NONE,NONE},
+        {"stop",15,0,NONE,NONE},
         {"null",ERROR,ERROR},
     };
     /*initialize variable*/
@@ -288,10 +320,10 @@ int translate_code(char const * cmd,int *ic,code_image * code) {
     }
     args = strtok(NULL,"\r\n");
     /*check arg commas*/
-    if (comma_check(args)==ERROR) {
+    if ((args != NULL )&& comma_check(args)==ERROR) {
         return ERROR;
     }
-    src_wrd = strtok(NULL," \t\n,");
+    src_wrd = strtok(args," \t\n,");
     dst_wrd = strtok(NULL," \t\n,");
 
     /*deal with the command word*/
@@ -313,7 +345,7 @@ int translate_code(char const * cmd,int *ic,code_image * code) {
     }
     if (src_wrd != NULL) { /*deal with the source word*/
         src_mode = address_mode(src_wrd);
-        if (src_mode == ERROR) {
+        if (src_mode == ERROR || address_mode_check(src_mode,commands[i].src_method) == ERROR) {
             return ERROR;
         }
         /*translate the source operand*/
@@ -331,7 +363,7 @@ int translate_code(char const * cmd,int *ic,code_image * code) {
     }
     if (dst_wrd != NULL) { /*deal with the destination word*/
         dst_mode = address_mode(dst_wrd);
-        if (dst_mode == ERROR) {
+        if (dst_mode == ERROR || address_mode_check(dst_mode,commands[i].dst_method) == ERROR) {
             return ERROR;
         }
         /*translate the destination operand*/

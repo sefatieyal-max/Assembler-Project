@@ -26,11 +26,11 @@ void* do_realloc(char *memory,size_t size);
  */
 void clean_line_spaces(char* dst, const char* src);
 /**
- *@brief the clean al the extra spaces from the files
+ * @brief the clean al the extra spaces from the files
  *
- *@param filename is the name of the file we are cleaning
-    *
- *@return a pointer to the clean file
+ * @param filename is the name of the file we are cleaning
+ *
+ * @return a pointer to the clean file if a line is longer then 80 characters return NULL
  */
 char *clean_file_spaces(char filename[]);
 /**

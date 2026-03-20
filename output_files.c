@@ -145,6 +145,7 @@ int make_ext_file(const char * file_name, symbol_table * head) {
 int make_output_files(const char * file_name, const symbol_table_mgr * symbol_head, const data_mgr * data_head, const code_image * code, const int fic, const int fdc){
     /*check if the file is empty*/
     if ((fic == FIRST_MEMORY)&&(fdc == 0)) {
+        printf("no code written in \"%s\" -the file is empty or only comment",file_name);
         return OK;
     }
     if (make_ob_file(file_name,data_head->head,code,fic,fdc) == ERROR) {

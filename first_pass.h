@@ -67,6 +67,14 @@ int addressing_check(int opcode, char** src_wrd, char** dst_wrd);
  */
 int address_mode(const char* operand);
 /**
+ * @check if the addressing mode allowed for the given command
+ *
+ * @param mode is the addressing mode we are checking
+ * @param allowed is the allowed addressing modes
+ * @return OK - if it allowed | ERROR - if not allowed
+ */
+int address_mode_check(const int mode, const int allowed);
+/**
  * @brief the function receive a command line, translate it into binary and store in the code image (command and operands)
  * she calculates the command length and update the ic counter
  *
