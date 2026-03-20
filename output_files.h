@@ -45,4 +45,4 @@ int make_ext_file(const char * file_name, symbol_table * head);
  * @return OK if creating the files was successful end ERROR if not
  */
 int make_output_files(const char * file_name, const symbol_table_mgr * symbol_head, const data_mgr * data_head, const code_image * code, int fic, int fdc);
-#endif //ASSEMBLER_OUTPUT_FILES_H
+#endif

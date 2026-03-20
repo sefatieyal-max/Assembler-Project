@@ -26,8 +26,6 @@ boolean macro_end(const char *line) {
  *@return TRUE if the line written properly and FALSE if its doesn't
  */
 boolean macro_end_check(const char * line) {
-    boolean flag;
-
     /*check if the line start with mcroend*/
     if(strncmp(line, "mcroend",strlen("mcroend"))== 0) {
         line = line + strlen("mcroend");
@@ -40,7 +38,6 @@ boolean macro_end_check(const char * line) {
         }
         return TRUE;
     }
-
     return FALSE;
 }
 /**

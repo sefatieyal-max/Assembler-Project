@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
         symbol_head.head = NULL;
         data_head.head = NULL;
         memset(code,0,sizeof(code));
+        printf("\n\nstart file -\"%s\"...\n",argv[argc]);
         /*run and check if the macro processor seceded*/
         if (run_pre_assembler(argv[argc],&macro_head) == OK) {
             /*run and check the first pass on the file*/

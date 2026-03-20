@@ -147,4 +147,4 @@ boolean is_extern(const char *line);
  * @return TRUE if the line is only a number and FALSE if not
  */
 boolean is_number(const char *line);
-#endif //ASSEMBLER_UTILITIES_H
+#endif

@@ -91,8 +91,8 @@ typedef struct command {
     char name[CMD_SIZE];
     int opcode;
     int funct;
-    int src_method; //mask for the allowed source method in 4 bytes (1 - allowed|0 - not allowed),in the next format register|immediate|direct|relative
-    int dst_method; //mask for the allowed source method in 4 bytes (1 - allowed|0 - not allowed),in the next format register|immediate|direct|relative
+    int src_method; /*mask for the allowed source method in 4 bytes (1 - allowed|0 - not allowed),in the next format register|immediate|direct|relative*/
+    int dst_method; /*mask for the allowed source method in 4 bytes (1 - allowed|0 - not allowed),in the next format register|immediate|direct|relative*/
 }command;
 /*the struct contain the code image from the code in binary*/
 typedef struct code_image {
@@ -155,4 +155,4 @@ int extract_code(const code_image *code_image);
  */
 char extract_are(const code_image *code_image);
 
-#endif //ASSEMBLER_STRUCTS_H
+#endif

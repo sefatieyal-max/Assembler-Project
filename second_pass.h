@@ -31,4 +31,4 @@ int translate_label(symbol_table_mgr * symbol_head, code_image * code, int * ic,
  */
 int run_second_pass(char * file_name, symbol_table_mgr * symbol_head, const data_mgr * data_head, code_image * code);
 
-#endif //ASSEMBLER_SECOND_PASS_H
+#endif

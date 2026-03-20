@@ -60,4 +60,4 @@ int create_macro(macro_mgr * mgr, char * line);
  */
 int run_pre_assembler(char *file_name,macro_mgr *mgr);
 
-#endif //ASSEMBLER_MACRO_H
+#endif

@@ -43,4 +43,4 @@
 typedef enum {FALSE, TRUE} boolean;
 
 
-#endif //ASSEMBLER_GLOBALS_H
+#endif

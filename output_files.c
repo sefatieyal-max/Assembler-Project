@@ -12,7 +12,7 @@
  * @return OK if the print was successful and ERROR if not
  */
 int make_ob_file(const char * file_name, const data_image * data_head, const code_image * code, const int fic, const int fdc) {
-    int ic,i,word,data[fdc] ;
+    int ic,i,word,data[MEMORY_SIZE] ;
     char *file, type;
     FILE *fp;
     /*create and open the ".ob" file for writing*/
